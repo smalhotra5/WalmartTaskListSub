@@ -44,7 +44,7 @@ public class Database
 		PreparedStatement s = null;
 		try 
 		{
-			s = conn.prepareStatement("SELECT * FROM WalmartTasks ORDER BY Status, Rank;");
+			s = conn.prepareStatement("SELECT * FROM WalmartTasks ORDER BY Status, Priority;");
 			rs = s.executeQuery(); 
 			return rs;
 			
