@@ -11,6 +11,6 @@ etc...
 and then press the Add Tasks button
 
 **NOTE 
-Some of the code is from a previous project so some of the older terms may appear in the task list
+Some of the code is from a previous project and older terms may appear in the task list
 
 
