@@ -2,7 +2,7 @@
 
 To run this program:
 
-Run the source code with an IDE and add enternal jar files provided in the Jar Files folder.
+Run the source code with an IDE and add any needed external jar files provided in the Jar Files folder.
 
 The application is currently linked to an amazon cloud database so upon startup it will load the tasks currently in the database. 
 
