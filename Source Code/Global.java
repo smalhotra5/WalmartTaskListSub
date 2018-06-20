@@ -697,8 +697,8 @@ public class Global extends Thing
         			rowValues.add("");
         			rows.add(rowValues);
         		
-        			db.userGeneratedQuery("INSERT INTO WalmartTasks VALUES("+ null + ", " + null + ", " +
-        			null + ", " + null +", " + progress + ", " + priority + ");");
+        			db.userGeneratedQuery("INSERT INTO WalmartTasks VALUES('"+ walmartLab + "', '" + departmentName + "', '" +
+        			taskName + "', '" + taskInfo +"', '" + progress + "', '" + priority + "');");
         			
         		}
         	}
