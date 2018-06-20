@@ -10,6 +10,8 @@ You can use the provided CSV to add new tasks or manually enter tasks GUI elemen
 etc...
 and then press the Add Tasks button
 
+The walmart documentation provides information on methods and applicable guides
+
 **NOTE 
 Some of the code is from a previous project and older terms may appear in the task list
 
