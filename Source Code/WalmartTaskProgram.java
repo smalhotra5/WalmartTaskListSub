@@ -3,7 +3,7 @@ package tasklist;
 /***
  * WalmartTAskProgram.java
  * @author Sumit Malhotra
- * 06/18/2017
+ * 06/18/2018
  * This program creates a user interface for reading files
  * and displaying information from the file
  * 
@@ -39,13 +39,16 @@ import javax.swing.table.DefaultTableModel;
 public class WalmartTaskProgram extends JFrame 
 {	
 	private JTextArea jta;
+	private JTextArea notes;
 	private JScrollPane jsp;
 	Global global;
 	
 	//Buttons for data on text area
 	private JButton readBtn;
-	private JButton searchBtn;
+	private JTextField locationTF;
+	private JTextField departmentTF;
 	private JButton displayBtn;
+	private JButton addBtn;
 	private JLabel priorityLbl;
 	private JTextField priorityTF;
 	private JComboBox<String> employeeCB;
@@ -78,6 +81,7 @@ public class WalmartTaskProgram extends JFrame
     private JTable table;
     private JScrollPane jsp2;
     private Vector<Object> rows;
+    private Database db;
     
 
 	
@@ -96,6 +100,7 @@ public class WalmartTaskProgram extends JFrame
     	jsp = new JScrollPane(jta);
     	jsp2 = new JScrollPane();
     	rows = new Vector<Object>();
+    	db = new Database();
     	
     	tb = new JTabbedPane();
     	
@@ -108,28 +113,33 @@ public class WalmartTaskProgram extends JFrame
     	
     	//Buttons for data on text area
     	readBtn = new JButton("Read");
-    	searchBtn = new JButton("Search");
+    	
     	displayBtn = new JButton("Display");
+    	addBtn = new JButton("Add Task");
         
     	//keyword searching
     	priorityLbl = new JLabel("Priority");
     	priorityTF = new JTextField(10);
+    	locationTF = new JTextField(10);
+    	departmentTF = new JTextField(10);
     	
     	//search choices
     	employeeCB = new JComboBox <String> ();
-    	employeeCB.addItem("Index");
-    	employeeCB.addItem("Name");
-    	employeeCB.addItem("Type");
+    	employeeCB.addItem("Employees");
+    	employeeCB.addItem("Employee 1");
+    	employeeCB.addItem("Employee 2");
     
     	//adds the elements to the top of the page
     	//with flowlayout
     	ctrlPnl = new JPanel();
-    	ctrlPnl.add(readBtn);
-    	ctrlPnl.add(displayBtn);
     	ctrlPnl.add(priorityLbl);
     	ctrlPnl.add(priorityTF);
+    	ctrlPnl.add(new JLabel("Location"));
+    	ctrlPnl.add(locationTF);
+    	ctrlPnl.add(new JLabel("Department"));
+    	ctrlPnl.add(departmentTF);
     	ctrlPnl.add(employeeCB);
-    	ctrlPnl.add(searchBtn);
+    	ctrlPnl.add(addBtn);
         	
     	//sort elements 
         sortByNameBtn = new JButton("Sort By Name");
@@ -143,7 +153,9 @@ public class WalmartTaskProgram extends JFrame
         sortObjectNameCB.addItem("Job");
         
         sortPanel = new JPanel();
-        //sort by name elements on GUI
+        //sort by name elements on GUI, read csvs and display csv contents
+        sortPanel.add(readBtn);
+    	sortPanel.add(displayBtn);
         sortNameLbl = new JLabel("Sort By Name");
         sortPanel.add( sortNameLbl );
         sortPanel.add( sortObjectNameCB );
@@ -161,6 +173,7 @@ public class WalmartTaskProgram extends JFrame
     	
     	
     	//add ship attribute element to GUI
+    	
         sortPanel.add( sortShipAttLbl );
         sortPanel.add( sortShipAttCB );
         sortPanel.add( sortByAttBtn );
@@ -172,13 +185,17 @@ public class WalmartTaskProgram extends JFrame
                
         JPanel notesPnl = new JPanel();
         notesPnl.setLayout(new BoxLayout(notesPnl, BoxLayout.Y_AXIS));
+        notesPnl.add(new JLabel("Task Viewer"));
+        notesPnl.add(jsp);
         notesPnl.add(new JLabel("Additional Notes:"));
-        notesPnl.add(new JScrollPane());
+        notes = new JTextArea();
+        notes.setEditable(true);
+        notesPnl.add(new JScrollPane(notes));
         
        mainPanel.add(ctrlPnl , BorderLayout.PAGE_START );
-       mainPanel.add(jsp, BorderLayout.CENTER);
+       mainPanel.add(notesPnl, BorderLayout.CENTER);
        mainPanel.add( sortPanel, BorderLayout.PAGE_END ); 
-       mainPanel.add(notesPnl, BorderLayout.EAST);
+       
        JPanel p = new JPanel(new GridLayout(2,1));
       
        p.add(jsp2);
@@ -188,7 +205,7 @@ public class WalmartTaskProgram extends JFrame
        add(p, BorderLayout.CENTER);
        
  
-      
+      //sort by attributes
        sortByAttBtn.addActionListener(new ActionListener()
         		{
         		     public void actionPerformed(ActionEvent e)
@@ -207,7 +224,7 @@ public class WalmartTaskProgram extends JFrame
                      }
         		});
         
-        
+        //sort by name
         sortByNameBtn.addActionListener(new ActionListener()
         		{
         	         public void actionPerformed(ActionEvent e)
@@ -226,7 +243,7 @@ public class WalmartTaskProgram extends JFrame
         	         }
         		});
         
-        //readbtn actionlistener calls readFile method
+        //readbtn actionlistener calls readFile method 
         readBtn.addActionListener(new ActionListener()
         {
 			@Override
@@ -235,20 +252,8 @@ public class WalmartTaskProgram extends JFrame
 				readFile();
 			}
         });
-        
-        //searchBtn actionlistener calls search method
-        searchBtn.addActionListener(new ActionListener()
-        {
-     			@Override
-     			public void actionPerformed(ActionEvent e) 
-     			{
-     			    if(priorityTF.getText() != null)
-     				    search((String)(employeeCB.getSelectedItem()), 
-     			    	    	priorityTF.getText());     		
-     			}
-         });
-        
-        //actionlistener for dipslay button, gets world data 
+                
+        //actionlistener for dipslay button, gets globabl data 
         //from toString
         displayBtn.addActionListener(new ActionListener(){
      			@Override
@@ -265,50 +270,78 @@ public class WalmartTaskProgram extends JFrame
      			}
           }); 
         
-        Database db = new Database();
-    	ResultSet dbResultSet = db.selectAll();
-    	 //add Prexisting tasks in table
-         try   
-         {      
-    		    while( dbResultSet.next() )
-    		    {
-    		       Vector<Object> temp = new Vector<Object>();
-    		       
-    		    
-    		     	temp.add(dbResultSet.getString("Walmart") );
-    		    	temp.add(dbResultSet.getString("Department") );
-    		    	temp.add( dbResultSet.getString("Tasks") );
-    		    	temp.add( dbResultSet.getString("Personnel") );
-    		    	temp.add(dbResultSet.getString("Status") );
-    		    	temp.add(dbResultSet.getString("Priority") );
-    		    	rows.add(temp); 
-    		    }
-    		    
-    		    Vector<String> columnNames = new Vector<String>();
-    			columnNames.add("Walmart");
-    			columnNames.add("Department");
-    			columnNames.add("Tasks");
-    			columnNames.add("Personnel");
-    			columnNames.add("Status (%)");
-    			columnNames.add("Priority");
-    		    
-                table = new JTable(new DefaultTableModel(rows, columnNames));
-    	        jsp2.getViewport().add(table);
-    	} 
-         catch (SQLException e2) 
-         {
-    		// TODO Auto-generated catch block
-    		e2.printStackTrace();
-    	}
-        catch(Exception e)
+        
+        addBtn.addActionListener(new ActionListener()
         {
-            e.printStackTrace();	
-        }
-     
+            public void actionPerformed(ActionEvent e)
+            {
+            	try
+            	{
+                    db.userGeneratedQuery("INSERT INTO WalmartTasks (Walmart, Department, Tasks, Personnel, Status, Priority ) "
+                    		+ "VALUES('"+ locationTF.getText() + "', '" + departmentTF.getText() + "', '" +
+                			jta.getText() + "', '" + notes.getText() +"', " + null + ", '" + Integer.parseInt(priorityTF.getText()) + "');");   
+                    loadTasks();
+            	}
+            	catch(NullPointerException e1)
+            	{
+            		e1.printStackTrace();
+            	}
+            	catch(Exception e2)
+            	{
+            		e2.printStackTrace();
+            	}
+            }
+        });
+        
+       
     
+        loadTasks();
     	this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     	this.setVisible(true);
     	this.setLocationRelativeTo(null);   
+    }
+    
+    //creates table with tasks from database
+    public void loadTasks()
+    {
+    	ResultSet dbResultSet = db.selectAll();
+
+        try   
+        {      
+   		    while( dbResultSet.next() )
+   		    {
+   		       Vector<Object> temp = new Vector<Object>();
+   		       
+   		    
+   		     	temp.add(dbResultSet.getString("Walmart") );
+   		    	temp.add(dbResultSet.getString("Department") );
+   		    	temp.add( dbResultSet.getString("Tasks") );
+   		    	temp.add( dbResultSet.getString("Personnel") );
+   		    	temp.add(dbResultSet.getString("Status") );
+   		    	temp.add(dbResultSet.getString("Priority") );
+   		    	rows.add(temp); 
+   		    }
+   		    
+   		    Vector<String> columnNames = new Vector<String>();
+   			columnNames.add("Walmart");
+   			columnNames.add("Department");
+   			columnNames.add("Tasks");
+   			columnNames.add("Personnel");
+   			columnNames.add("Status (%)");
+   			columnNames.add("Priority");
+   		    
+            table = new JTable(new DefaultTableModel( rows, columnNames ));
+   	        jsp2.getViewport().add(table);
+   	} 
+        catch (SQLException e2) 
+        {
+   		// TODO Auto-generated catch block
+   		e2.printStackTrace();
+   	}
+       catch(Exception e)
+       {
+           e.printStackTrace();	
+       }
     }
        
     /**
